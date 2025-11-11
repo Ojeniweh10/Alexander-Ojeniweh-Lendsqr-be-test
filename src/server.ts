@@ -5,6 +5,16 @@ import logger from "./utils/logger";
 
 const PORT = config.port || 3000;
 
+// Debug: Log all env vars at startup
+console.log("=== ENV DEBUG ===");
+console.log("NODE_ENV:", process.env.NODE_ENV);
+console.log("PORT:", process.env.PORT);
+console.log("DB_HOST:", process.env.DB_HOST);
+console.log("DB_USER:", process.env.DB_USER);
+console.log("DB_NAME:", process.env.DB_NAME);
+console.log("JWT_SECRET:", process.env.JWT_SECRET ? "SET" : "MISSING");
+console.log("=================");
+
 const startServer = async () => {
   try {
     await db.raw("SELECT 1");
