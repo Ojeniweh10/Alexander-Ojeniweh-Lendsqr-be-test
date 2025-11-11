@@ -1,8 +1,8 @@
-Demo-Credit Wallet Service
+# Demo-Credit Wallet Service
 
 A robust and scalable wallet service built with Node.js, TypeScript, MySQL, and KnexJS for the Lendsqr backend engineering assessment.
 
-Table of Contents
+# Table of Contents
 
 Overview
 Features
@@ -15,7 +15,7 @@ Running Tests
 Deployment
 Design Decisions
 
-Overview
+## Overview
 This is a production-ready wallet service that enables users to:
 
 Create accounts with KYC verification via Lendsqr Adjutor API
@@ -26,12 +26,12 @@ View transaction history
 
 The service implements blacklist checking during registration to prevent onboarding of users in the Lendsqr Adjutor Karma blacklist.
 
-Features
+# Features
 
 User Registration with Adjutor KYC verification and blacklist checking
 Authentication using JWT tokens
 
-Wallet Operations:
+# Wallet Operations:
 
 Fund wallet
 Transfer to other users
@@ -46,7 +46,7 @@ Logging using Winston and Slack
 Rate Limiting to prevent abuse
 Security with Helmet middleware
 
-Tech Stack
+## Tech Stack
 
 Runtime: Node.js (LTS v18+)
 Language: TypeScript
@@ -59,19 +59,12 @@ Testing: Jest + ts-jest
 Logging: Winston, Slack
 Security: Helmet, bcryptjs, CORS
 
-Architecture
+# Architecture
 The application follows a layered architecture with clear separation of concerns:
-┌─────────────────────────────────────────┐
-│ Controllers │ ← HTTP Request/Response
-├─────────────────────────────────────────┤
-│ Services │ ← Business Logic
-├─────────────────────────────────────────┤
-│ Repositories │ ← Data Access Layer
-├─────────────────────────────────────────┤
-│ Database │ ← MySQL
-└─────────────────────────────────────────┘
 
-Design Patterns Used
+Controllers(HTTP Request/Response) -> Services(Business Logic) -> Repositories(Data Access Layer) -> Database(MYSQL)
+
+# Design Patterns Used
 
 Repository Pattern: Separates data access logic from business logic
 Service Layer Pattern: Encapsulates business logic
@@ -79,74 +72,59 @@ Dependency Injection: Services depend on abstractions (repositories)
 Factory Pattern: Used for creating transaction references
 Middleware Pattern: Express middleware for authentication, validation, and error handling
 
-🗄 Database Design (drawn with asci characters, check demo-credit-db-design_1.png for actual image)
+# Database Design  
 
-ER Diagram
-┌─────────────┐ ┌─────────────┐ ┌──────────────────┐
-│ USERS │ 1 1 │ WALLETS │ 1 N │ TRANSACTIONS │
-│─────────────│─────────│─────────────│─────────│──────────────────│
-│ id (PK) │ │ id (PK) │ │ id (PK) │
-│ email │ │ user_id(FK) │ │ reference (UNIQUE│
-│ phone_number│ │ balance │ │ wallet_id (FK) │
-│ first_name │ │ currency │ │ transaction_type │
-│ last_name │ │ is_active │ │ amount │
-│ password_hash│ │ created_at │ │ balance_before │
-│ bvn │ │ updated_at │ │ balance_after │
-│ account_num │ └─────────────┘ │ description │
-│ is_blacklisted│ │ category │
-│ adjutor_id │ │ related_wallet_id│
-│ ... │ │ status │
-└─────────────┘ │ metadata (JSON) │
-│ created_at │
-└──────────────────┘
+## ER Diagram
+check demo-credit-db-design_1.png for actual image
 
-Database Tables
+## Database Tables
 
-USERS Table
+## USERS Table
 Stores user account information and KYC data.
 
-Key Design Decisions:
+## Key Design Decisions:
 
-email, phone_number, and account_number are UNIQUE
-is_blacklisted caches Adjutor response to avoid repeated API calls
-adjutor_customer_id stores the external ID for reference
-Indexes on frequently queried columns (email, phone, account_number)
+email, phone_number, and account_number are UNIQUE.
+is_blacklisted caches Adjutor response to avoid repeated API calls.
+adjutor_customer_id stores the external ID for reference.
+Indexes on frequently queried columns (email, phone, account_number).
 
-WALLETS Table
+## WALLETS Table
 One wallet per user for managing balances.
 
-Key Design Decisions:
+## Key Design Decisions:
 
-One-to-one relationship with users
-balance uses DECIMAL(15,2) to avoid floating-point precision issues
-Separate table allows for easy locking during transactions
-Currency field for future multi-currency support
+One-to-one relationship with users.
+balance uses DECIMAL(15,2) to avoid floating-point precision issues.
+Separate table allows for easy locking during transactions.
+Currency field for future multi-currency support.
 
-TRANSACTIONS Table
+## TRANSACTIONS Table
 Immutable audit log of all wallet operations.
 
-Key Design Decisions:
+## Key Design Decisions:
 
-reference is UNIQUE for idempotency
-balance_before and balance_after create a complete audit trail
-related_wallet_id links transfer transactions
-metadata JSON field for extensibility
-Composite indexes on (wallet_id, created_at) for performance
+reference is UNIQUE for idempotency.
+balance_before and balance_after create a complete audit trail.
+related_wallet_id links transfer transactions.
+metadata JSON field for extensibility.
+Composite indexes on (wallet_id, created_at) for performance.
 
-API Documentation
+# API Documentation
 
-Base URL
+## Base URL
 
 http://localhost:3000/api
 
-Authentication
+## Authentication
+
 Protected endpoints require a Bearer token in the Authorization header:
 Authorization: Bearer <jwt_token>
 
-Endpoints:
+# Endpoints:
 
-1. Register User
-   httpPOST /auth/register
+1. #  Register User
+   POST /auth/register
    Content-Type: application/json
 
 {
@@ -173,7 +151,7 @@ Endpoints:
 ]
 }
 
-Success Response (201):
+### Success Response (201):
 
 json{
 "success": true,
@@ -196,15 +174,15 @@ json{
 }
 }
 
-Error Response (403) - Blacklisted:
+### Error Response (403) - Blacklisted:
 json{
 "success": false,
 "message": "Registration denied. Please contact support for more information."
 }
 
-2. Login
+2. # Login
 
-httpPOST /auth/login
+POST /auth/login
 Content-Type: application/json
 
 {
@@ -212,7 +190,7 @@ Content-Type: application/json
 "password": "securePassword123"
 }
 
-Success Response (200):
+### Success Response (200):
 json{
 "success": true,
 "message": "Login successful",
@@ -223,12 +201,12 @@ json{
 }
 }
 
-3. Get Balance
+3. # Get Balance
 
-httpGET /wallet/balance
+GET /wallet/balance
 Authorization: Bearer <token>
 
-Success Response (200):
+### Success Response (200):
 json{
 "success": true,
 "message": "Balance retrieved successfully",
@@ -238,9 +216,9 @@ json{
 }
 }
 
-4. Fund Wallet
+4. # Fund Wallet
 
-httpPOST /wallet/fund
+POST /wallet/fund
 Authorization: Bearer <token>
 Content-Type: application/json
 
@@ -248,7 +226,7 @@ Content-Type: application/json
 "amount": 10000
 }
 
-Success Response (201):
+### Success Response (201):
 json{
 "success": true,
 "message": "Wallet funded successfully",
@@ -265,9 +243,9 @@ json{
 }
 }
 
-5. Transfer Funds
+5. # Transfer Funds
 
-httpPOST /wallet/transfer
+POST /wallet/transfer
 Authorization: Bearer <token>
 Content-Type: application/json
 
@@ -298,9 +276,9 @@ json{
 }
 }
 
-6. Withdraw Funds
+6. # Withdraw Funds
 
-httpPOST /wallet/withdraw
+POST /wallet/withdraw
 Authorization: Bearer <token>
 Content-Type: application/json
 
@@ -309,7 +287,7 @@ Content-Type: application/json
 "description": "Withdrawal to bank"
 }
 
-Success Response (201):
+### Success Response (201):
 json{
 "success": true,
 "message": "Withdrawal successful",
@@ -319,11 +297,12 @@ json{
 }
 }
 
-7. Get Transaction History
+7. # Get Transaction History
 
-httpGET /wallet/transactions?page=1&limit=20
+GET /wallet/transactions?page=1&limit=20
 Authorization: Bearer <token>
-Success Response (200):
+
+### Success Response (200):
 json{
 "success": true,
 "message": "Transactions retrieved successfully",
@@ -349,8 +328,8 @@ json{
 }
 }
 
-Setup Instructions:
-Prerequisites
+# Setup Instructions:
+## Prerequisites
 
 Node.js (v18 or higher)
 MySQL (v8.0 or higher)
@@ -439,22 +418,22 @@ tests/
 
 Sample Test Cases Covered
 
-✅ Get balance successfully
-✅ Get balance - wallet not found
-✅ Fund wallet successfully
-✅ Fund wallet - inactive wallet error
-✅ Transfer - insufficient balance
-✅ Transfer - prevent self-transfer
-✅ Transfer - recipient not found
-✅ Withdraw successfully
-✅ Withdraw - insufficient balance
+Get balance successfully
+Get balance - wallet not found
+Fund wallet successfully
+Fund wallet - inactive wallet error
+Transfer - insufficient balance
+Transfer - prevent self-transfer
+Transfer - recipient not found
+Withdraw successfully
+Withdraw - insufficient balance
 
-Deployment
+# Sample Deployment if you wish to go live
 Deploy to Heroku
 
 Create a Heroku app:
 
-heroku create your-name-demo-credit-be-test
+heroku create demo-credit-be-test
 
 Add MySQL addon:
 
@@ -477,22 +456,22 @@ Deploy to Railway/Render:
 
 Similar process - set environment variables and connect to their MySQL service.
 
-My Design Decisions:
+# My Design Decisions:
 
-1. Why Repository Pattern?
+1. ## Why Repository Pattern?
    Decision: Implemented repository pattern for data access
 
-Reason why:
+### Reason why:
 
 Testability: Easy to mock repositories in unit tests
 Maintainability: Centralized data access logic
 Flexibility: Easy to swap database implementations
 Single Responsibility: Repositories only handle data access
 
-2. Why Database Transactions?
+2. ## Why Database Transactions?
    Decision: Used database transactions for all financial operations
 
-Reason why:
+### Reason why:
 
 ACID Compliance: Ensures data consistency
 Atomicity: All-or-nothing operations
@@ -516,10 +495,10 @@ await trx.rollback();
 throw error;
 }
 
-3. Why Separate Transactions Table?
+3. ## Why Separate Transactions Table?
    Decision: Created separate table for transactions instead of storing in JSON
 
-Reason why:
+### Reason why:
 
 Audit Trail: Immutable record of all operations
 Query Performance: Can index and query efficiently
@@ -527,77 +506,77 @@ Compliance: Required for financial applications
 Debugging: Easy to trace transaction flow
 Balance Verification: balance_before and balance_after provide audit trail
 
-4. Why DECIMAL for Money?
+4. ## Why DECIMAL for Money?
    Decision: Used DECIMAL(15,2) instead of FLOAT/INTEGER
 
-Reason why:
+### Reason why:
 
 Precision: Avoids floating-point arithmetic errors
 Standard: Industry standard for financial applications
 Range: Supports up to 999,999,999,999.99
 Accuracy: Exact decimal representation
 
-5. Why Adjutor API Integration?
+5. ## Why Adjutor API Integration?
    Decision: Integrated Adjutor API during registration
 
-Reason why:
+### Reason why:
 
 Requirement Compliance: Assessment requires blacklist checking
 Proactive Prevention: Block blacklisted users before onboarding
 Reduced Fraud: Verify user identity upfront
 Cached Result: Store blacklist status to avoid repeated API calls
 
-6. Why JWT for Authentication?
+6. # Why JWT for Authentication?
    Decision: Used JWT tokens instead of sessions
 
-Reason why:
+## Reason why:
 
 Stateless: No server-side session storage needed
 Scalable: Easy to scale horizontally
 Mobile-Friendly: Works well with mobile apps
 Standard: Industry-standard authentication method
 
-7. Why Joi for Validation?
+7. # Why Joi for Validation?
    Decision: Used Joi for request validation
 
-Reason why:
+## Reason why:
 
 Declarative: Clear, readable validation schemas
 Comprehensive: Supports complex validation rules
 Error Messages: Provides detailed error messages
 TypeScript Support: Good TypeScript integration
 
-8. Why Winston and slack for Logging?
+8. # Why Winston and slack for Logging?
    Decision: Used Winston and slack instead of console.log
 
-Reason why:
+## Reason why:
 
 Production-Ready: Supports multiple transports
 Log Levels: Different levels (info, warn, error)
 Structured Logging: JSON format for easy parsing
 Easy Notification: easily notify on call devs to issues directly on their phones
 
-9. Why Rate Limiting?
+9. # Why Rate Limiting?
    Decision: Implemented rate limiting on API routes
 
-Reason why:
+## Reason why:
 
 DDoS Protection: Prevents abuse
 Fair Usage: Ensures fair resource allocation
 Cost Control: Reduce infrastructure costs
 Security: Slows down brute-force attacks
 
-10. Error Handling Strategy
+10. # Error Handling Strategy
     Decision: Custom AppError class with proper HTTP status codes
 
-Reason why:
+## Reason why:
 
 Consistency: Uniform error responses
 Client-Friendly: Clear error messages
 Debugging: Maintains error stack traces
 Operational vs Programming Errors: Distinguishes between types
 
-Key Metrics & Performance
+## Key Metrics & Performance
 
 Transaction Safety: ACID-compliant with database transactions
 Concurrency: Row-level locking prevents race conditions
@@ -605,7 +584,7 @@ Idempotency: Transaction references prevent duplicate processing
 Response Time: < 200ms for most operations (excluding external API calls)
 Test Coverage: > 80% code coverage target
 
-Security Considerations
+## Security Considerations
 
 Password Security: Bcrypt hashing with salt
 JWT: Secure token-based authentication
