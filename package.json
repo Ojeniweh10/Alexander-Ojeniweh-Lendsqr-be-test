@@ -23,7 +23,7 @@
     "typescript",
     "demo-credit"
   ],
-  "author": "alexander-ojeniweh",
+  "author": "Alexander-Ojeniweh",
   "license": "MIT",
   "dependencies": {
     "@slack/web-api": "^7.12.0",
