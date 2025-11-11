@@ -14,8 +14,8 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "allowImportingTsExtensions": true,
-    "noEmit": true
+    //"allowImportingTsExtensions": true,
+    "noEmit": false
   },
   "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist"]
