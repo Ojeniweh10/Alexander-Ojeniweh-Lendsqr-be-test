@@ -1,7 +1,14 @@
-import { config } from "../config/enviroment";
+import fs from "fs";
+import path from "path";
+import { config } from "./../config/enviroment";
 import winston from "winston";
-import Transport from "winston-transport";
 import { WebClient } from "@slack/web-api";
+
+// Ensure logs directory exists
+const logsDir = path.resolve("logs");
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir);
+}
 
 let slackClient: WebClient | null = null;
 if (config.slack?.token) {
@@ -25,24 +32,14 @@ const consoleFormat = winston.format.combine(
   })
 );
 
-class SlackTransport extends Transport {
-  constructor(opts?: Transport.TransportStreamOptions) {
-    super(opts);
-  }
-
+class SlackTransport extends winston.transports.Stream {
   log(info: any, callback: () => void) {
     setImmediate(() => this.emit("logged", info));
-
-    if (!slackClient) {
-      callback();
-      return;
-    }
-
     const { level, message, ...meta } = info;
     const channel = this.getChannel(level);
     const color = this.getColor(level);
 
-    if (!channel) {
+    if (!slackClient || !channel) {
       callback();
       return;
     }
@@ -83,14 +80,18 @@ class SlackTransport extends Transport {
   }
 }
 
-// Create main logger
 const logger = winston.createLogger({
   level: config.logging.level || "info",
   format: logFormat,
   defaultMeta: { service: config.app.name },
   transports: [
-    new winston.transports.File({ filename: "logs/error.log", level: "error" }),
-    new winston.transports.File({ filename: "logs/combined.log" }),
+    new winston.transports.File({
+      filename: path.join(logsDir, "error.log"),
+      level: "error",
+    }),
+    new winston.transports.File({
+      filename: path.join(logsDir, "combined.log"),
+    }),
   ],
 });
 
@@ -98,7 +99,11 @@ if (config.nodeEnv !== "production") {
   logger.add(new winston.transports.Console({ format: consoleFormat }));
 }
 
-if (config.nodeEnv === "production" && slackClient) {
+if (
+  config.nodeEnv === "production" &&
+  slackClient &&
+  config.slack.channels.errors
+) {
   logger.add(new SlackTransport());
 }
 
