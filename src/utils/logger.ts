@@ -1,5 +1,6 @@
-import { config } from "./../config/enviroment";
+import { config } from "../config/enviroment";
 import winston from "winston";
+import Transport from "winston-transport";
 import { WebClient } from "@slack/web-api";
 
 let slackClient: WebClient | null = null;
@@ -24,14 +25,24 @@ const consoleFormat = winston.format.combine(
   })
 );
 
-class SlackTransport extends winston.transports.Stream {
+class SlackTransport extends Transport {
+  constructor(opts?: Transport.TransportStreamOptions) {
+    super(opts);
+  }
+
   log(info: any, callback: () => void) {
     setImmediate(() => this.emit("logged", info));
+
+    if (!slackClient) {
+      callback();
+      return;
+    }
+
     const { level, message, ...meta } = info;
     const channel = this.getChannel(level);
     const color = this.getColor(level);
 
-    if (!slackClient || !channel) {
+    if (!channel) {
       callback();
       return;
     }
@@ -72,6 +83,7 @@ class SlackTransport extends winston.transports.Stream {
   }
 }
 
+// Create main logger
 const logger = winston.createLogger({
   level: config.logging.level || "info",
   format: logFormat,
@@ -86,11 +98,7 @@ if (config.nodeEnv !== "production") {
   logger.add(new winston.transports.Console({ format: consoleFormat }));
 }
 
-if (
-  config.nodeEnv === "production" &&
-  slackClient &&
-  config.slack.channels.errors
-) {
+if (config.nodeEnv === "production" && slackClient) {
   logger.add(new SlackTransport());
 }
 
