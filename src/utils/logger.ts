@@ -99,12 +99,12 @@ if (config.nodeEnv !== "production") {
   logger.add(new winston.transports.Console({ format: consoleFormat }));
 }
 
-if (
-  config.nodeEnv === "production" &&
-  slackClient &&
-  config.slack.channels.errors
-) {
-  logger.add(new SlackTransport());
-}
+// if (
+//   config.nodeEnv === "production" &&
+//   slackClient &&
+//   config.slack.channels.errors
+// ) {
+//   logger.add(new SlackTransport());
+// }
 
 export default logger;
