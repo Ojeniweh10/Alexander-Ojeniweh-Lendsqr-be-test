@@ -19,12 +19,12 @@ console.log("=================");
 const startServer = async () => {
   try {
     await db.raw("SELECT 1");
-    logger.info("Database connected successfully");
+    console.log("Database connected successfully");
 
     app.listen(PORT, () => {
-      logger.info(`Demo-Credit Wallet Service running on port ${PORT}`);
-      logger.info(`Health check: http://localhost:${PORT}/api/health`);
-      logger.info(`API Base: http://localhost:${PORT}/api`);
+      console.log(`Demo-Credit Wallet Service running on port ${PORT}`);
+      console.log(`Health check: http://localhost:${PORT}/api/health`);
+      console.log(`API Base: http://localhost:${PORT}/api`);
     });
   } catch (error) {
     logger.error("Failed to start server", { error });
