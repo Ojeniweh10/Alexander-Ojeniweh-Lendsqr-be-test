@@ -11,7 +11,7 @@ import {
 export class TransactionRepository {
   private readonly tableName = "transactions";
 
-  /** Create a new transaction record */
+  /** Creating a new transaction record */
   async create(
     data: {
       wallet_id: number;
@@ -45,12 +45,11 @@ export class TransactionRepository {
     return transaction;
   }
 
-  /** Find transaction by ID */
+  /** Finding transaction by ID */
   async findById(
     id: number,
     trx?: Knex.Transaction
   ): Promise<Transaction | null> {
-    // Consistent pattern: use trx if provided, otherwise use db
     const query = trx ? trx(this.tableName) : db(this.tableName);
 
     const row = await query.where({ id }).first();
@@ -58,19 +57,17 @@ export class TransactionRepository {
     return row || null;
   }
 
-  /** Find by reference (unique) */
   async findByReference(reference: string): Promise<Transaction | null> {
     const tx = await db(this.tableName).where({ reference }).first();
     return tx || null;
   }
 
-  /** Update transaction status */
+  /** Updating transaction status */
   async updateStatus(
     id: number,
     status: TransactionStatus,
     trx?: Knex.Transaction
   ): Promise<Transaction> {
-    // Use the transaction or db consistently
     const query = trx ? trx(this.tableName) : db(this.tableName);
 
     const affected = await query.where({ id }).update({
@@ -82,7 +79,6 @@ export class TransactionRepository {
       throw new AppError(404, "Transaction not found for status update");
     }
 
-    // Fetch using the SAME transaction context
     const transaction = await this.findById(id, trx);
 
     if (!transaction) {
@@ -113,7 +109,7 @@ export class TransactionRepository {
     return { transactions, total };
   }
 
-  /** Get paginated transactions for a wallet */
+  /** Getting paginated transactions for a wallet */
   async findByWalletId(
     walletId: number,
     page: number = 1,

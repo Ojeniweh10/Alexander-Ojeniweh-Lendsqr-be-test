@@ -26,9 +26,6 @@ export class WalletService {
     this.userRepo = new UserRepository();
   }
 
-  /**
-   * Get wallet balance
-   */
   async getBalance(userId: number) {
     const wallet = await this.walletRepo.findByUserId(userId);
 
@@ -44,8 +41,6 @@ export class WalletService {
 
   /**
    * Fund wallet
-   * In a real system, this would integrate with a payment gateway
-   * For this MVP, we'll simulate successful funding
    */
   async fundWallet(userId: number, fundData: FundWalletDTO) {
     const wallet = await this.walletRepo.findByUserId(userId);
@@ -57,8 +52,6 @@ export class WalletService {
     if (!wallet.is_active) {
       throw new AppError(403, "Wallet is inactive");
     }
-
-    // Start transaction
     const trx = await db.transaction();
 
     try {
@@ -69,8 +62,6 @@ export class WalletService {
       );
 
       const newBalance = currentBalance + fundData.amount;
-
-      // Create transaction record
       const reference = `TXN-WALLET-FUNDING${Date.now()}-${uuidv4().slice(0, 8)}`;
       const transaction = await this.transactionRepo.create(
         {
@@ -85,8 +76,6 @@ export class WalletService {
         },
         trx
       );
-
-      // Update wallet balance
       await this.walletRepo.updateBalance(wallet.id, newBalance, trx);
 
       // Mark transaction as successful
@@ -120,7 +109,6 @@ export class WalletService {
    * Transfer funds to another user
    */
   async transfer(userId: number, transferData: TransferDTO) {
-    // Get sender's wallet
     const senderWallet = await this.walletRepo.findByUserId(userId);
 
     if (!senderWallet) {
@@ -139,25 +127,17 @@ export class WalletService {
     if (!recipient) {
       throw new AppError(404, "Recipient account not found");
     }
-
-    // Prevent self-transfer
     if (recipient.id === userId) {
       throw new AppError(400, "Cannot transfer to your own account");
     }
-
-    // Check if recipient is blacklisted or inactive
     if (recipient.is_blacklisted || !recipient.is_active) {
       throw new AppError(403, "Recipient account is not available");
     }
-
-    // Get recipient's wallet
     const recipientWallet = await this.walletRepo.findByUserId(recipient.id);
 
     if (!recipientWallet || !recipientWallet.is_active) {
       throw new AppError(404, "Recipient wallet not available");
     }
-
-    // Start transaction
     const trx = await db.transaction();
 
     try {
@@ -167,7 +147,6 @@ export class WalletService {
         trx
       );
 
-      // Check if sender has sufficient balance
       if (senderBalance < transferData.amount) {
         throw new AppError(400, "Insufficient balance");
       }
@@ -177,7 +156,6 @@ export class WalletService {
         trx
       );
 
-      // Calculate new balances
       const senderNewBalance = senderBalance - transferData.amount;
       const recipientNewBalance = recipientBalance + transferData.amount;
 
@@ -224,7 +202,6 @@ export class WalletService {
         trx
       );
 
-      // Update both wallet balances
       await this.walletRepo.updateBalance(
         senderWallet.id,
         senderNewBalance,
@@ -269,7 +246,6 @@ export class WalletService {
       await trx.rollback();
       logger.error("Error processing transfer", { userId, error });
 
-      // Re-throw AppErrors as-is
       if (error instanceof AppError) {
         throw error;
       }
@@ -280,8 +256,6 @@ export class WalletService {
 
   /**
    * Withdraw funds from wallet
-   * In a real system, this would integrate with a payment gateway
-   * For this MVP, we'll simulate successful withdrawal
    */
   async withdraw(userId: number, withdrawData: WithdrawDTO) {
     const wallet = await this.walletRepo.findByUserId(userId);
@@ -293,8 +267,6 @@ export class WalletService {
     if (!wallet.is_active) {
       throw new AppError(403, "Wallet is inactive");
     }
-
-    // Start transaction
     const trx = await db.transaction();
 
     try {
@@ -303,15 +275,11 @@ export class WalletService {
         wallet.id,
         trx
       );
-
-      // Check sufficient balance
       if (currentBalance < withdrawData.amount) {
         throw new AppError(400, "Insufficient balance");
       }
 
       const newBalance = currentBalance - withdrawData.amount;
-
-      // Create transaction record
       const reference = `TXN-WALLET-WITHDRAWAL${Date.now()}-${uuidv4().slice(0, 8)}`;
       const transaction = await this.transactionRepo.create(
         {
@@ -326,11 +294,8 @@ export class WalletService {
         },
         trx
       );
-
-      // Update wallet balance
       await this.walletRepo.updateBalance(wallet.id, newBalance, trx);
 
-      // Mark transaction as successful
       await this.transactionRepo.updateStatus(
         transaction.id,
         TransactionStatus.SUCCESS,

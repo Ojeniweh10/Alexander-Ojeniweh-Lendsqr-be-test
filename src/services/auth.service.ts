@@ -32,7 +32,6 @@ export class AuthService {
    * 4. Create user and wallet in a transaction
    */
   async register(userData: CreateUserDTO) {
-    // Check if user already exists
     const [emailExists, phoneExists, accountExists] = await Promise.all([
       this.userRepo.emailExists(userData.email),
       this.userRepo.phoneNumberExists(userData.phone_number),
@@ -51,7 +50,6 @@ export class AuthService {
       throw new AppError(409, "Account number already registered");
     }
 
-    // Prepare Adjutor request
     const adjutorRequest: AdjutorCustomerRequest = {
       phone_number: userData.phone_number,
       bvn: userData.bvn,
@@ -67,10 +65,9 @@ export class AuthService {
       documents: userData.documents,
     };
 
-    // Validate data before sending to Adjutor
     this.adjutorService.validateCustomerData(adjutorRequest);
 
-    // Check blacklist status via Adjutor
+    // Check blacklist status via Adjutor and preventing onboarding if blacklisted
     logger.info("Checking blacklist status for new user", {
       email: userData.email,
     });
@@ -78,7 +75,6 @@ export class AuthService {
     const adjutorResponse =
       await this.adjutorService.createCustomerAndCheckBlacklist(adjutorRequest);
 
-    // Prevent onboarding if blacklisted
     if (adjutorResponse.data.user.blacklisted === 1) {
       logger.warn("Attempted registration by blacklisted user", {
         email: userData.email,
@@ -90,14 +86,11 @@ export class AuthService {
       );
     }
 
-    // Hash password
     const password_hash = await bcrypt.hash(userData.password, 10);
 
-    // Create user and wallet in a transaction
     const trx = await db.transaction();
 
     try {
-      // Create user
       const user = await this.userRepo.create(
         {
           email: userData.email,
@@ -120,7 +113,6 @@ export class AuthService {
         trx
       );
 
-      // Create wallet for the user
       const wallet = await this.walletRepo.create(user.id, trx);
       await trx.commit();
 
@@ -130,10 +122,8 @@ export class AuthService {
         walletId: wallet.id,
       });
 
-      // Generate JWT token
       const token = this.generateToken(user.id, user.email);
 
-      // Remove sensitive data before returning
       const { password_hash: _, ...userWithoutPassword } = user;
 
       return {
@@ -152,24 +142,19 @@ export class AuthService {
    * Login user
    */
   async login(loginData: LoginDTO) {
-    // Find user by email
     const user = await this.userRepo.findByEmail(loginData.email);
 
     if (!user) {
       throw new AppError(401, "Invalid email or password");
     }
-
-    // Check if user is active
     if (!user.is_active) {
       throw new AppError(403, "Account is inactive. Please contact support.");
     }
 
-    // Check if user is blacklisted
     if (user.is_blacklisted) {
       throw new AppError(403, "Account access denied. Please contact support.");
     }
 
-    // Verify password
     const isPasswordValid = await bcrypt.compare(
       loginData.password,
       user.password_hash
@@ -179,18 +164,14 @@ export class AuthService {
       throw new AppError(401, "Invalid email or password");
     }
 
-    // Get user's wallet
     const wallet = await this.walletRepo.findByUserId(user.id);
 
     logger.info("User logged in successfully", {
       userId: user.id,
       email: user.email,
     });
-
-    // Generate JWT token
     const token = this.generateToken(user.id, user.email);
 
-    // Remove sensitive data
     const { password_hash: _, ...userWithoutPassword } = user;
 
     return {
@@ -201,7 +182,7 @@ export class AuthService {
   }
 
   /**
-   * Generate JWT token
+   * Generate and verify JWT token
    */
   private generateToken(userId: number, email: string): string {
     const payload = { userId, email };
@@ -211,9 +192,7 @@ export class AuthService {
 
     return jwt.sign(payload, config.jwt.secret, options);
   }
-  /**
-   * Verify JWT token
-   */
+
   verifyToken(token: string): { userId: number; email: string } {
     try {
       const decoded = jwt.verify(token, config.jwt.secret) as {

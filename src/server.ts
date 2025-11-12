@@ -5,21 +5,15 @@ import logger from "./utils/logger";
 
 const PORT = config.port || 3000;
 
-// Debug: Log all env vars at startup
-console.log("=== ENV DEBUG ===");
-console.log("NODE_ENV:", process.env.NODE_ENV);
-console.log("PORT:", process.env.PORT);
-console.log("DB_HOST:", process.env.DB_HOST);
-console.log("DB_USER:", process.env.DB_USER);
-console.log("DB_NAME:", process.env.DB_NAME);
-console.log("DB_PASSWORD:", process.env.DB_PASSWORD);
-console.log("JWT_SECRET:", process.env.JWT_SECRET);
-console.log("=================");
-
 const startServer = async () => {
   try {
-    await db.raw("SELECT 1");
-    console.log("Database connected successfully");
+    try {
+      await db.raw("SELECT 1");
+      console.log("Database connected successfully");
+    } catch (error) {
+      console.error("DB connection failed:", error);
+      process.exit(1);
+    }
 
     app.listen(PORT, () => {
       console.log(`Demo-Credit Wallet Service running on port ${PORT}`);

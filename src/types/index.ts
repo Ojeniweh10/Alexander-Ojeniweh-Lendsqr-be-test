@@ -157,7 +157,7 @@ export interface AdjutorCreateCustomerResponse {
   status: string;
   message: string;
   data: {
-    user: AdjutorCustomerResponse; // ← SINGULAR
+    user: AdjutorCustomerResponse;
   };
   meta: {
     cost: number;
@@ -165,7 +165,6 @@ export interface AdjutorCreateCustomerResponse {
   };
 }
 
-// API Request/Response Types
 export interface AuthRequest extends Request {
   headers: {
     authorization: string;
@@ -196,7 +195,6 @@ export interface WithdrawDTO {
   description?: string;
 }
 
-// API Response Types
 export interface ApiResponse<T = any> {
   success: boolean;
   message: string;

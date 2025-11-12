@@ -1,13 +1,12 @@
 import { Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
 import { CreateUserDTO, LoginDTO } from "../types";
-import { catchAsync } from "../utils/catchAsync"; // ✅ import helper
+import { catchAsync } from "../utils/catchAsync";
 
 const authService = new AuthService();
 
 /**
  * Register a new user
- * POST /api/auth/register
  */
 export const register = catchAsync(async (req: Request, res: Response) => {
   const userData: CreateUserDTO = req.body;
@@ -26,7 +25,6 @@ export const register = catchAsync(async (req: Request, res: Response) => {
 
 /**
  * Login user
- * POST /api/auth/login
  */
 export const login = catchAsync(async (req: Request, res: Response) => {
   const loginData: LoginDTO = req.body;

@@ -4,7 +4,6 @@ import { config } from "./../config/enviroment";
 import winston from "winston";
 import { WebClient } from "@slack/web-api";
 
-// Ensure logs directory exists
 const logsDir = path.resolve("logs");
 if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir);

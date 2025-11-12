@@ -21,7 +21,6 @@ export class WalletRepository {
     return wallet;
   }
 
-  /** Find wallet by ID */
   async findById(id: number, trx?: any): Promise<Wallet | null> {
     const query = trx
       ? db(this.tableName).transacting(trx)
@@ -29,7 +28,6 @@ export class WalletRepository {
     return query.where("id", id).first();
   }
 
-  /** Find wallet by user ID (1:1 relationship) */
   async findByUserId(userId: number): Promise<Wallet | null> {
     const wallet = await db(this.tableName).where({ user_id: userId }).first();
     return wallet || null;
@@ -45,7 +43,6 @@ export class WalletRepository {
     return parseFloat(result.balance.toString());
   }
 
-  /** Update wallet balance (atomic) */
   async updateBalance(
     walletId: number,
     newBalance: number,
@@ -62,7 +59,6 @@ export class WalletRepository {
     return wallet;
   }
 
-  /** Get wallet with user (optional join) */
   async findByIdWithUser(
     id: number
   ): Promise<(Wallet & { email: string }) | null> {

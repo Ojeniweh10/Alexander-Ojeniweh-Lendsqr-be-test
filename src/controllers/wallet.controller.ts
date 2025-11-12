@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { WalletService } from "../services/wallet.service";
 import { AuthRequest, FundWalletDTO, TransferDTO, WithdrawDTO } from "@/types";
-import { catchAsync } from "../utils/catchAsync"; // ✅ import helper
+import { catchAsync } from "../utils/catchAsync";
 
 const walletService = new WalletService();
 

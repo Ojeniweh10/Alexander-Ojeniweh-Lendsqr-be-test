@@ -29,9 +29,6 @@ export class UserRepository {
     return user;
   }
 
-  /**
-   * Find user by ID
-   */
   async findById(id: number, trx?: any): Promise<User | null> {
     const query = trx
       ? db(this.tableName).transacting(trx)
@@ -39,17 +36,11 @@ export class UserRepository {
     return query.where("id", id).first();
   }
 
-  /**
-   * Find user by email
-   */
   async findByEmail(email: string): Promise<User | null> {
     const user = await db(this.tableName).where({ email }).first();
     return user || null;
   }
 
-  /**
-   * Find user by phone number
-   */
   async findByPhoneNumber(phoneNumber: string): Promise<User | null> {
     const user = await db(this.tableName)
       .where({ phone_number: phoneNumber })
@@ -57,9 +48,6 @@ export class UserRepository {
     return user || null;
   }
 
-  /**
-   * Find user by account number
-   */
   async findByAccountNumber(accountNumber: string): Promise<User | null> {
     const user = await db(this.tableName)
       .where({ account_number: accountNumber })

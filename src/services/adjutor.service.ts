@@ -20,7 +20,7 @@ export class AdjutorService {
       timeout: 30000,
     });
 
-    //response interceptor for logging
+    //intercepts response for logging
     this.api.interceptors.response.use(
       (response) => response,
       (error) => {
@@ -114,7 +114,6 @@ export class AdjutorService {
     let dobStr: string;
 
     if (data.dob instanceof Date) {
-      // Convert Date to YYYY-MM-DD
       dobStr = data.dob.toISOString().split("T")[0];
     } else if (typeof data.dob === "string") {
       dobStr = data.dob.trim();
